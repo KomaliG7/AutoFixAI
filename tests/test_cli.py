@@ -28,6 +28,45 @@ def test_cli_json_output_is_valid(tmp_path, capsys):
     assert data["changed"] is True and data["fixes"][0]["rule"] == "unused-import"
 
 
+def test_cli_check_mode_exits_3_when_changes_would_be_made_and_never_writes(tmp_path):
+    f = tmp_path / "bug.py"
+    original = "import os\nprint(1)\n"
+    f.write_text(original)
+    code = main([str(f), "--check", "--no-run"])
+    assert code == 3
+    assert f.read_text() == original
+    assert not (tmp_path / "bug.py.orig").exists()
+
+
+def test_cli_check_mode_exits_0_when_clean(tmp_path):
+    f = tmp_path / "clean.py"
+    clean_code = "print(1)\n"
+    f.write_text(clean_code)
+    code = main([str(f), "--check", "--no-run"])
+    assert code == 0
+    assert f.read_text() == clean_code
+
+
+def test_cli_check_mode_works_with_json(tmp_path, capsys):
+    f = tmp_path / "bug.py"
+    f.write_text("import os\nprint(1)\n")
+    code = main([str(f), "--check", "--json", "--no-run"])
+    assert code == 3
+    data = json.loads(capsys.readouterr().out)
+    assert data["changed"] is True
+    assert data["fixes"][0]["rule"] == "unused-import"
+
+
+def test_cli_check_mode_with_write_flag_still_does_not_write(tmp_path):
+    f = tmp_path / "bug.py"
+    original = "import os\nprint(1)\n"
+    f.write_text(original)
+    code = main([str(f), "--check", "--write", "--no-run"])
+    assert code == 3
+    assert f.read_text() == original
+    assert not (tmp_path / "bug.py.orig").exists()
+
+
 def test_cli_missing_file_returns_2(tmp_path):
     assert main([str(tmp_path / "nope.py")]) == 2
 

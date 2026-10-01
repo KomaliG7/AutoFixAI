@@ -53,6 +53,7 @@ Requires Python 3.10+. The only runtime dependency is [`pyflakes`](https://githu
 
 ```bash
 autofix my_script.py                 # analyse, repair, show a report and diff
+autofix my_script.py --check         # CI check: exit 3 if changes would be made, never writes files
 autofix my_script.py --write         # apply the fixes (keeps my_script.py.orig)
 autofix my_script.py -o fixed.py     # write the fixed code somewhere else
 autofix my_script.py --json          # machine-readable report (for CI / IDE plugins)
@@ -61,7 +62,7 @@ autofix my_script.py --ignore unused-import
 autofix calc.py --test-cmd "python check_calc.py"   # test-driven repair (see below)
 ```
 
-Exit code: `0` = clean or fixed, `1` = something still needs a human, `2` = usage error.
+Exit code: `0` = clean or fixed, `1` = something still needs a human, `2` = usage error, `3` = changes would be made (with `--check`).
 
 As a library:
 
