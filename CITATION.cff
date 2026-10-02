@@ -2,13 +2,13 @@ cff-version: 1.2.0
 message: "If you use AutoFixAI in research, please cite it as below."
 title: "AutoFixAI: Automatic detection, repair, validation and explanation of Python bugs"
 type: software
-version: 0.4.0
-date-released: 2026-10-01
+version: 0.4.1
+date-released: 2026-10-02
 license: MIT
 repository-code: "https://github.com/KomaliG7/AutoFixAI"
 authors:
   - given-names: "Komali"
-  - family-names: "Gurram"
+    family-names: "Gurram"
 keywords:
   - automated program repair
   - fault localization
