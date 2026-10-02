@@ -33,6 +33,7 @@ def build_parser() -> argparse.ArgumentParser:
         description="Detect, repair, validate and explain common Python bugs.",
     )
     p.add_argument("file", help="Python file to analyse and repair")
+    p.add_argument("--check", action="store_true", help="don't write changes; exit 3 if changes would be made, 0 if clean")
     p.add_argument("--write", action="store_true", help="overwrite the file with the fixed code (a .orig backup is kept)")
     p.add_argument("-o", "--output", help="write the fixed code to this path instead")
     p.add_argument("--json", action="store_true", help="print the full report as JSON")
@@ -87,7 +88,7 @@ def main(argv: list[str] | None = None) -> int:
 
     print(format_json(report) if args.json else format_text(report, path.name, show_diff=not args.no_diff))
 
-    if report.changed:
+    if not args.check and report.changed:
         if args.write:
             backup = path.with_name(path.name + ".orig")
             backup.write_text(source, encoding="utf-8")
@@ -96,6 +97,11 @@ def main(argv: list[str] | None = None) -> int:
         elif args.output:
             Path(args.output).write_text(report.fixed, encoding="utf-8")
             print(f"\nWrote fixed code to {args.output}", file=sys.stderr)
+
+    if args.check:
+        if report.changed:
+            return 3
+        return 0 if report.success else 1
 
     return 0 if report.success else 1
 
