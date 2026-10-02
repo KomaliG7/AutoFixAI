@@ -4,6 +4,7 @@
 [![PyPI](https://img.shields.io/pypi/v/autofixai.svg)](https://pypi.org/project/autofixai/)
 [![Python](https://img.shields.io/pypi/pyversions/autofixai.svg)](https://pypi.org/project/autofixai/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+![AutoFixAI demo](https://raw.githubusercontent.com/KomaliG7/AutoFixAI/main/docs/demo.gif)
 
 **Automatically detect, repair, validate and explain common Python bugs.**
 
