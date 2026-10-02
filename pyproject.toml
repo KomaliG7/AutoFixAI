@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "autofixai"
-version = "0.4.0"
+version = "0.4.1"
 description = "Automatic detection, repair, validation and explanation of common Python bugs."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -13,6 +13,12 @@ authors = [{ name = "Komali" }]
 keywords = ["automated-program-repair", "static-analysis", "ast", "debugging", "developer-tools"]
 classifiers = [
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Topic :: Software Development :: Quality Assurance",
 ]
