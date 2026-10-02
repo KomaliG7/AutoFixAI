@@ -1,6 +1,13 @@
 from .base import Context, Fixer
 from .runtime import IndexErrorFixer, KeyErrorFixer, StrConcatFixer, ZeroDivisionFixer
-from .static import IsLiteralFixer, MutableDefaultFixer, UndefinedNameFixer, UnusedImportFixer, UnusedVariableFixer
+from .static import (
+    BareExceptFixer,
+    IsLiteralFixer,
+    MutableDefaultFixer,
+    UndefinedNameFixer,
+    UnusedImportFixer,
+    UnusedVariableFixer,
+)
 
 
 def default_fixers() -> list[Fixer]:
@@ -10,6 +17,7 @@ def default_fixers() -> list[Fixer]:
         UnusedVariableFixer(),
         MutableDefaultFixer(),
         IsLiteralFixer(),
+        BareExceptFixer(),
         ZeroDivisionFixer(),
         IndexErrorFixer(),
         KeyErrorFixer(),

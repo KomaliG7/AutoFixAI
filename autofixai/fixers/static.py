@@ -303,6 +303,40 @@ class MutableDefaultFixer(Fixer):
         return fixes
 
 
+class BareExceptFixer(Fixer):
+    """Catch ordinary exceptions without swallowing process-control exceptions."""
+
+    rule = "bare-except"
+
+    def propose(self, ctx: Context) -> list[Fix]:
+        nodes = list(ast.walk(ctx.tree))
+        for node in nodes:
+            if (
+                isinstance(node, ast.Name) and node.id == "Exception" and isinstance(node.ctx, (ast.Store, ast.Del))
+                or isinstance(node, ast.arg) and node.arg == "Exception"
+                or isinstance(node, (*FUNC_TYPES, ast.ClassDef)) and node.name == "Exception"
+                or isinstance(node, ast.ExceptHandler) and node.name == "Exception"
+                or isinstance(node, (ast.Import, ast.ImportFrom))
+                and any((a.asname or a.name.split(".")[0]) == "Exception" or a.name == "*" for a in node.names)
+            ):
+                return []
+        return [
+            Fix(
+                rule=self.rule,
+                description="Replace bare except with except Exception",
+                line=node.lineno,
+                edits=[TextEdit(node.lineno, node.col_offset + 6, node.lineno, node.col_offset + 6, " Exception")],
+                confidence=0.85,
+                reason=(
+                    "Bare except catches every BaseException, including KeyboardInterrupt and SystemExit. "
+                    "Exception catches ordinary errors while letting interruption and exit propagate. "
+                    "Review handlers that intentionally catch process-control exceptions."
+                ),
+            )
+            for node in nodes if isinstance(node, ast.ExceptHandler) and node.type is None
+        ]
+
+
 class IsLiteralFixer(Fixer):
     """Replace ``x is "text"`` / ``x is 5`` with ``==`` (identity is not equality)."""
 

@@ -59,6 +59,15 @@ def _ast_rules(tree: ast.AST) -> list[Issue]:
                         details={"function": node.name, "name": arg.arg},
                     )
                 )
+        elif isinstance(node, ast.ExceptHandler) and node.type is None:
+            issues.append(
+                Issue(
+                    rule="bare-except",
+                    message="Bare except also catches KeyboardInterrupt and SystemExit",
+                    line=node.lineno,
+                    col=node.col_offset,
+                )
+            )
         elif (
             isinstance(node, ast.BinOp)
             and isinstance(node.op, (ast.Div, ast.FloorDiv, ast.Mod))

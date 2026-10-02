@@ -87,6 +87,7 @@ for fix in report.fixes:
 | `key-error` | `d["missing"]` that raised `KeyError` | `d.get("missing")` |
 | `str-concat` | `"n=" + n` / `n + " items"` that raised `TypeError` | wrap the number in `str()` |
 | `is-literal` | `x is "text"`, `n is not 5` | `==` / `!=` |
+| `bare-except` | `except:` also catches interruption and exit | `except Exception:`; review intentional process-control handlers, or use `--ignore bare-except`. No automatic edit when `Exception` is shadowed or a star import makes its binding uncertain. |
 
 ## Test-driven repair (for bugs that don't crash)
 
