@@ -29,3 +29,8 @@ def test_mutable_default_and_literal_zero_division():
 def test_syntax_error_becomes_issue():
     issues = analyze("def broken(:\n")
     assert len(issues) == 1 and issues[0].rule == "syntax-error"
+
+
+def test_bare_except_is_reported_but_typed_handlers_are_not():
+    src = "try:\n    print(1)\nexcept ValueError:\n    pass\nexcept:\n    pass\n"
+    assert rules(src) == {("bare-except", 5)}

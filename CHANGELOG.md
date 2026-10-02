@@ -2,6 +2,10 @@
 
 All notable changes to this project are documented here. Format: [Keep a Changelog](https://keepachangelog.com/).
 
+## [Unreleased]
+### Added
+- Detect and repair bare `except:` handlers without changing comments, strings or typed handlers (#6).
+
 ## [0.4.1] - 2026-10-02
 ### Fixed
 - PyPI metadata: declare supported Python versions (3.10-3.13) and OS independence so the badges are accurate.

@@ -125,3 +125,50 @@ def test_empty_fixer_list_means_no_repairs():
     # Regression: `fixers or default_fixers()` used to treat [] as "use defaults".
     report = repair("import os\nprint(1)\n", fixers=[])
     assert not report.changed
+
+
+@pytest.mark.parametrize("header", ["except:", "except  :", "except\t:", "except\\\n:"])
+def test_bare_except_is_repaired_without_reformatting(header):
+    src = f'try:\n    print("é")\n{header}  # except: stays in the comment\n    print("except:")\n'
+    report = fix(src, execute=False)
+    assert report.fixed == src.replace(header, "except Exception" + header[6:], 1)
+    assert len(report.fixes) == 1
+    assert report.fixes[0].rule == "bare-except"
+    assert "KeyboardInterrupt" in report.fixes[0].reason and "SystemExit" in report.fixes[0].reason
+    assert not fix(report.fixed, execute=False).changed
+
+
+def test_bare_except_leaves_typed_handlers_unchanged():
+    src = 'try:\n    print("except:")\nexcept ValueError:\n    pass\nexcept Exception:\n    pass\n'
+    assert not fix(src, execute=False).changed
+
+
+def test_bare_except_respects_ignore():
+    src = "try:\n    print(1)\nexcept:\n    pass\n"
+    assert not fix(src, execute=False, ignore={"bare-except"}).changed
+
+
+@pytest.mark.parametrize("binding", ["Exception = ValueError", "class Exception: pass", "from builtins import *"])
+def test_bare_except_does_not_insert_a_shadowed_exception(binding):
+    src = f"{binding}\ntry:\n    print(Exception)\nexcept:\n    pass\n"
+    assert not fix(src, execute=False, ignore={"unused-import"}).changed
+
+
+def test_bare_except_does_not_insert_a_shadowed_parameter():
+    src = "def f(Exception):\n    try:\n        print(Exception)\n    except:\n        pass\n"
+    assert not fix(src, execute=False).changed
+
+
+@pytest.mark.parametrize("exception", ["SystemExit", "KeyboardInterrupt"])
+def test_bare_except_releases_control_flow_exceptions(exception):
+    src = f"try:\n    raise {exception}(7)\nexcept:\n    print('swallowed')\n"
+    report = fix(src, execute=False)
+    with pytest.raises((SystemExit, KeyboardInterrupt)) as error:
+        exec(report.fixed, {})
+    assert error.value.args == (7,)
+
+
+def test_bare_except_still_catches_ordinary_errors():
+    src = "try:\n    raise ValueError('bad')\nexcept:\n    print('caught')\n"
+    report = fix(src)
+    assert report.success and report.final_run.stdout == "caught\n"
