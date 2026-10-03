@@ -59,6 +59,7 @@ autofix my_script.py -o fixed.py     # write the fixed code somewhere else
 autofix my_script.py --json          # machine-readable report (for CI / IDE plugins)
 autofix my_script.py --no-run        # static analysis only - never executes your code
 autofix my_script.py --ignore unused-import
+autofix my_script.py --select unused-import
 autofix calc.py --test-cmd "python check_calc.py"   # test-driven repair (see below)
 ```
 

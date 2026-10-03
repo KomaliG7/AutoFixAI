@@ -10,6 +10,7 @@ from pathlib import Path
 
 from . import __version__
 from .engine import repair
+from .fixers import default_fixers
 from .report import format_json, format_text
 from .testdriven import repair_with_tests
 
@@ -41,6 +42,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--timeout", type=float, default=5.0, help="seconds allowed per sandboxed run (default 5)")
     p.add_argument("--max-rounds", type=int, default=6, help="maximum repair iterations (default 6)")
     p.add_argument("--ignore", action="append", default=[], metavar="RULE", help="rule to skip (repeatable)")
+    p.add_argument("--select", action="append", default=[], metavar="RULE", help="only run this rule (repeatable; --ignore still wins)")
     p.add_argument("--test-cmd", metavar="CMD", help="test command that must pass (e.g. \"pytest -q\"); enables test-driven mutation repair. "
                    "Runs in the file's directory and temporarily overwrites the file with candidates.")
     p.add_argument("--search-budget", type=int, default=500, help="max candidate patches to try with --test-cmd (default 500)")
@@ -50,7 +52,13 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
-    args = build_parser().parse_args(argv)
+    parser = build_parser()
+    args = parser.parse_args(argv)
+    if args.select:
+        valid = sorted(f.rule for f in default_fixers())
+        unknown = [r for r in args.select if r not in valid]
+        if unknown:
+            parser.error(f"unknown rule(s) for --select: {', '.join(unknown)}. Valid rules: {', '.join(valid)}")
     for stream in (sys.stdout, sys.stderr):
         try:
             stream.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[attr-defined]
@@ -70,6 +78,7 @@ def main(argv: list[str] | None = None) -> int:
         timeout=args.timeout,
         max_rounds=args.max_rounds,
         ignore=args.ignore,
+        select=args.select if args.select else None,
     )
 
     if args.test_cmd:

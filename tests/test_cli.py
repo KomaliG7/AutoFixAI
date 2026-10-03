@@ -1,7 +1,17 @@
 import json
 
+import pytest
+
 from autofixai.cli import main, split_command
 
+
+def test_cli_select_unknown_rule_lists_valid_rules(tmp_path, capsys):
+    f = tmp_path / "bug.py"
+    f.write_text("print(1)\n")
+    with pytest.raises(SystemExit) as exc:
+        main([str(f), "--select", "no-such-rule"])
+    err = capsys.readouterr().err
+    assert exc.value.code == 2 and "no-such-rule" in err and "unused-import" in err
 
 def test_cli_prints_report_and_returns_zero(tmp_path, capsys):
     f = tmp_path / "bug.py"

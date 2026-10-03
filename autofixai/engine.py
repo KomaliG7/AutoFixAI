@@ -54,6 +54,7 @@ def repair(
     timeout: float = 5.0,
     max_rounds: int = 6,
     ignore: Iterable[str] = (),
+    select: Optional[Iterable[str]] = None,
     fixers: Optional[list[Fixer]] = None,
 ) -> Report:
     """Detect and repair bugs in ``source``.
@@ -64,11 +65,17 @@ def repair(
         timeout: seconds allowed for each sandboxed run.
         max_rounds: safety cap on repair iterations.
         ignore: rule names to leave alone (e.g. ``{"unused-import"}``).
+                select: if given, only these rules run; ``ignore`` still wins.
     """
     ignored = set(ignore)
-    active = [f for f in (fixers if fixers is not None else default_fixers()) if f.rule not in ignored]
+    selected = set(select) if select is not None else None
 
-    initial_issues = [i for i in analyze(source) if i.rule not in ignored]
+    def wanted(rule: str) -> bool:
+        return rule not in ignored and (selected is None or rule in selected)
+
+    active = [f for f in (fixers if fixers is not None else default_fixers()) if wanted(f.rule)]
+
+    initial_issues = [i for i in analyze(source) if wanted(i.rule)]
     initial_run = run_code(source, timeout) if execute else None
     last_run: Optional[ExecutionResult] = initial_run
 
@@ -78,7 +85,7 @@ def repair(
     rounds = 0
 
     for _ in range(max_rounds):
-        issues = [i for i in analyze(current) if i.rule not in ignored]
+        issues = [i for i in analyze(current) if wanted(i.rule)]
         ctx = Context.build(current, issues, last_run)
         if ctx is None:  # syntax error: nothing safe we can do yet
             break
@@ -102,7 +109,7 @@ def repair(
         rounds += 1
         last_run = run_code(current, timeout) if execute else None
 
-    remaining = [i for i in analyze(current) if i.rule not in ignored]
+    remaining = [i for i in analyze(current) if wanted(i.rule)]
     unresolved = [f"line {i.line}: {i.message}" for i in remaining if i.severity == "error"]
     if last_run is not None and not last_run.passed:
         unresolved.append(f"runtime: {last_run.summary()}")

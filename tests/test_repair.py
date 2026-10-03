@@ -96,6 +96,15 @@ def test_ignore_rule_is_respected():
     report = fix(src, execute=False, ignore={"unused-import"})
     assert not report.changed
 
+def test_select_runs_only_chosen_rule():
+    src = "import os\n\ndef f(x=[]):\n    return x\n"
+    report = fix(src, execute=False, select={"unused-import"})
+    assert {f.rule for f in report.fixes} == {"unused-import"}
+
+def test_ignore_wins_over_select():
+    src = "import os\n\nprint(1)\n"
+    report = fix(src, execute=False, select={"unused-import"}, ignore={"unused-import"})
+    assert not report.changed
 
 def test_syntax_error_is_reported_not_crashed():
     report = fix("def broken(:\n    pass\n")
